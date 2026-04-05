@@ -1,0 +1,377 @@
+{
+	"info": {
+		"name": "Financial Fullstack Backend APIs",
+		"description": "Complete test suite for the Financial Backend Project. Covers Auth, Users, Records, Dashboard, Pagination, Search, and Error Handling.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:5000/api", "type": "string" },
+		{ "key": "auth_token", "value": "", "type": "string" },
+		{ "key": "test_user_id", "value": "", "type": "string" },
+		{ "key": "record_id", "value": "", "type": "string" }
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register Admin User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+									"var jsonData = pm.response.json();",
+									"if(jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set(\"auth_token\", jsonData.data.token);",
+									"}",
+									"pm.test(\"Has Token\", function () { pm.expect(jsonData.data).to.have.property(\"token\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Admin User\",\n    \"email\": \"admin@test.com\",\n    \"password\": \"password123\",\n    \"role\": \"Admin\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+					}
+				},
+				{
+					"name": "Login User (Saves Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"auth_token\", jsonData.data.token);",
+									"pm.test(\"Response structure is correct\", function () { pm.expect(jsonData.success).to.be.true; pm.expect(jsonData.data.user.email).to.eql(\"admin@test.com\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@test.com\",\n    \"password\": \"password123\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+					}
+				},
+				{
+					"name": "Login User - Error Test (Wrong Password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Returns error message\", function () { pm.expect(jsonData.message).to.eql(\"Incorrect email or password\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@test.com\",\n    \"password\": \"wrongpassword\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "2. User Management (Admin Only)",
+			"item": [
+				{
+					"name": "Get All Users (Pagination test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"if(jsonData.data.length > 0) { pm.collectionVariables.set(\"test_user_id\", jsonData.data[0]._id); }",
+									"pm.test(\"Pagination meta exists\", function () { pm.expect(jsonData.meta).to.have.property(\"total\"); pm.expect(jsonData.meta.page).to.eql(1); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users?page=1&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["users"],
+							"query": [ { "key": "page", "value": "1" }, { "key": "limit", "value": "5" } ]
+						}
+					}
+				},
+				{
+					"name": "Update User Role",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Role updated\", function () { pm.expect(jsonData.data.role).to.eql(\"Analyst\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"Analyst\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/users/{{test_user_id}}/role", "host": ["{{base_url}}"], "path": ["users", "{{test_user_id}}", "role"] }
+					}
+				},
+				{
+					"name": "Soft Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "DELETE",
+						"header": [],
+						"url": { "raw": "{{base_url}}/users/{{test_user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{test_user_id}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Financial Records Management",
+			"item": [
+				{
+					"name": "Create Record (Validation Error Test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+									"pm.test(\"Joi Validation caught error\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.message).to.include(\"amount\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": -500,\n    \"type\": \"Expense\",\n    \"category\": \"Food\",\n    \"date\": \"invalid-date\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/records", "host": ["{{base_url}}"], "path": ["records"] }
+					}
+				},
+				{
+					"name": "Create Valid Record",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"record_id\", jsonData.data._id);",
+									"pm.test(\"Record created with correct amount\", function () { pm.expect(jsonData.data.amount).to.eql(1500); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 1500,\n    \"type\": \"Income\",\n    \"category\": \"Salary\",\n    \"date\": \"2023-10-01T00:00:00.000Z\",\n    \"notes\": \"Monthly salary\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/records", "host": ["{{base_url}}"], "path": ["records"] }
+					}
+				},
+				{
+					"name": "Get Records (Search & Filter)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Returns array of records\", function () { pm.expect(jsonData.data).to.be.an('array'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/records?page=1&limit=10&search=salary&type=Income",
+							"host": ["{{base_url}}"],
+							"path": ["records"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" },
+								{ "key": "search", "value": "salary" },
+								{ "key": "type", "value": "Income" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Record",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Amount updated\", function () { pm.expect(jsonData.data.amount).to.eql(2000); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 2000\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "{{base_url}}/records/{{record_id}}", "host": ["{{base_url}}"], "path": ["records", "{{record_id}}"] }
+					}
+				},
+				{
+					"name": "Soft Delete Record",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "DELETE",
+						"header": [],
+						"url": { "raw": "{{base_url}}/records/{{record_id}}", "host": ["{{base_url}}"], "path": ["records", "{{record_id}}"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Dashboard APIs",
+			"item": [
+				{
+					"name": "Get Dashboard Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Dashboard structure is complete\", function () { ",
+									"    pm.expect(jsonData.data).to.have.property(\"totalIncome\");",
+									"    pm.expect(jsonData.data).to.have.property(\"totalExpenses\");",
+									"    pm.expect(jsonData.data).to.have.property(\"netBalance\");",
+									"    pm.expect(jsonData.data).to.have.property(\"categoryTotals\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{auth_token}}", "type": "string" } ] },
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{base_url}}/dashboard/summary", "host": ["{{base_url}}"], "path": ["dashboard", "summary"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Security & Edge Cases",
+			"item": [
+				{
+					"name": "Access Route Without Token (401 Error)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+									"pm.test(\"Correct error message\", function () { pm.expect(pm.response.json().message).to.eql(\"You are not logged in.\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "{{base_url}}/records", "host": ["{{base_url}}"], "path": ["records"] }
+					}
+				}
+			]
+		}
+	]
+}

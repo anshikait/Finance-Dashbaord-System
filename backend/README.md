@@ -321,6 +321,35 @@ Run the Register Admin User or Login User request.
 Postman will automatically capture the JWT token and save it to the environment variables.
 All subsequent protected routes will automatically use this token. No manual copying is required!
 
+Step 1: How to Import it into Postman
+Open Postman.
+In the top-left corner, click the "Import" button.
+Select the "Raw text" tab (or save the JSON above into a file named Financial-Backend.postman_collection.json and drag-and-drop it).
+Paste the JSON and click Import.
+You will now see a collection named "Financial Fullstack Backend APIs" in your workspace.
+
+Step 2: How to Run and Test the APIs Automatically
+Ensure your local Node.js server is running (npm run dev).
+Open the 
+1. Authentication folder in Postman.
+Click on Register Admin User and hit Send.
+Notice in the response that the user is created. Behind the scenes, Postman automatically grabbed the JWT token from the response and saved it to the auth_token variable!
+Now open the 
+2. User Management folder.
+Click Get All Users and hit Send.
+Because the token was saved, this request will automatically authorize you. The test script will also grab the very first User's ID and save it to the test_user_id variable.
+Open Update User Role and hit Send.
+It will automatically use the test_user_id to update that user.
+You can proceed down the list, clicking Send on each endpoint. They are designed to be clicked in chronological order to perfectly simulate a user's flow in your app.
+
+Features Validated in this Collection:
+Token Extraction: Done in Register and Login.
+ID Extraction: Done in Get All Users and Create Valid Record so PATCH and DELETE requests work instantly.
+Pagination & Search: Demonstrated in the Get Records (Search & Filter) request using Query Params.
+Soft Delete: Validated by the DELETE requests returning a 200 but not physically dropping the table rows.
+Validation Errors: Covered in Create Record (Validation Error Test) expecting a 400 status.
+Auth Guard: Covered in Access Route Without Token expecting a 401.
+
 
 📌 Project Workflow & Data Flow
 Authentication Flow: The client submits credentials to /auth/login. The Service validates the hash and generates a JWT.

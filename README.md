@@ -3,67 +3,46 @@ The Financial Management Backend is a highly scalable, secure, and feature-rich 
 It solves the problem of tracking income and expenses across different organizational tiers by providing a secure system with strict Role-Based Access Control (RBAC). It includes advanced features like complex database aggregations for dashboard analytics, soft-deletion for data integrity, and centralized error handling, making it a robust foundation for a modern web or mobile client.
 
 A company uses it to:
+- Track money (income & expenses)
+- Analyze financial data
+- Control who can access or modify data
 
-Track money (income & expenses)
-Analyze financial data
-Control who can access or modify data
 🌍 📊 Real-World Scenario (Company Usage)
-
 Imagine a startup or mid-size company.
-
-They have:
-daily expenses (rent, salaries, tools)
-income (clients, sales)
-
+They have daily expenses (rent, salaries, tools), income (clients, sales)
 They need a system to:
 ✔ store financial data
 ✔ analyze it
 ✔ control access
-
-👉 That’s exactly what your backend does.
+👉 That’s exactly what our backend does.
 
 👥 Who Uses It in a Company?
+
 🛠️ 1. Admin (Finance Manager / Owner)
-
-This person:
-
-manages all financial data
-controls users
+This person manages all financial data, controls users
 What they do:
-Add income/expense records
-Update or delete wrong entries
+- Add income/expense records
+- Update or delete wrong entries
 Create users (analysts/viewers)
-
 👉 Example:
-
 “Salary paid: ₹50,000”
 “Office rent: ₹20,000”
 
 📊 2. Analyst (Data Analyst / Accountant)
-
-This person:
-
-analyzes financial data
+This person analyzes financial data
 What they do:
-check spending patterns
-generate insights
-filter data
-
+- check spending patterns
+- generate insights
+- filter data
 👉 Example:
-
 “How much did we spend on marketing this month?”
 
 👀 3. Viewer (CEO / Stakeholder)
-
-This person:
-
-only wants high-level insights
+This person only wants high-level insights
 What they do:
-view dashboard
-check profits/loss
-
+- view dashboard
+- check profits/loss
 👉 Example:
-
 “Are we making profit this month?”
 
 
@@ -75,12 +54,12 @@ Validation: Joi (Schema-based payload validation)
 Security: Helmet, CORS, Express Rate Limit
 Logging: Morgan & Custom Console Logger
 
+
 📌 System Architecture
 This project implements a Layered (Modular) Architecture to ensure a clear separation of concerns, making the codebase highly maintainable and testable.
 
 📂 Folder Structure
-code
-Text
+
 /src
  ├── /config          # Database and 3rd party service configurations
  ├── /controllers     # Handles HTTP requests, extracts parameters, sends responses
@@ -92,9 +71,7 @@ Text
  └── /validations     # Joi validation schemas for incoming request bodies
 
 This diagram shows how the application is separated into distinct layers, following the Domain-Driven / Layered Architecture approach.
-ASCII Art Format
-code
-Text
+
 +---------------------------------------------------------+
 |                      CLIENT APPS                        |
 |               (React / Vue / Mobile App)                |
@@ -132,10 +109,8 @@ Text
 +---------------------------------------------------------+
 |                  DATABASE (MongoDB)                     |
 +---------------------------------------------------------+
-Mermaid.js Format (Paste into README.md)
-code
-Mermaid
-graph TD
+
+Mermaid graph TD
     Client[Client Application] -->|HTTP JSON| Router[Express Router /routes]
     
     subgraph Express Backend
@@ -152,13 +127,10 @@ graph TD
 
 
 🔄 Request Flow (Lifecycle of an API Call)
-Client Request ➔ Route ➔ Middleware (Auth/Role/Validation) ➔ Controller ➔ Service (Business Logic) ➔ Model (Database) ➔ Response sent to Client
-Note: Controllers never write directly to the database. All complex logic is delegated to the Service layer, ensuring code reusability.
+Client Request ➔ Route ➔ Middleware (Auth/Role/Validation) ➔ Controller ➔ Service (Business Logic) ➔ Model ➔ Response sent to Client
 
 This diagram tracks a single request (e.g., POST /api/records) from the moment the client sends it, through the security checks, to the database, and back to the client.
-ASCII Art Format
-code
-Text
+
 Client Request: POST /api/records
       │
       ▼
@@ -190,9 +162,8 @@ Client Request: POST /api/records
       │
       ▼
 Client Response: 201 Created { success: true, data: { ... } }
+
 Mermaid.js Sequence Diagram 
-code
-Mermaid
 sequenceDiagram
     participant Client
     participant Route
@@ -237,6 +208,7 @@ sequenceDiagram
 ✅ Input Validation: Middleware intercepts bad data using Joi schemas before it reaches the controller, saving server resources.
 ⚠️ Centralized Error Handling: All operational errors and unhandled exceptions are routed through a single global error handler, ensuring consistent JSON error responses.
 
+
 📌 User Roles & Workflow
 The system enforces strict data governance through three defined roles:
 👑 Admin: Has full control. Can create, read, update, and delete financial records. Can also view all users and manage their roles/account statuses.
@@ -249,6 +221,7 @@ The Analyst fetches dashboard summaries to review monthly income vs. expenses.
 The Admin creates a new Expense record.
 If an Admin deletes the record, the system marks it as isDeleted: true instead of dropping the row, keeping financial history intact.
 
+
 📌 API Structure
 🔑 Auth Module
 Method	Endpoint	Purpose	Access
@@ -260,6 +233,7 @@ GET	/api/users	Get paginated list of users	Admin
 PATCH	/api/users/:id/status	Activate/Deactivate user	Admin
 PATCH	/api/users/:id/role	Change user role	Admin
 DELETE	/api/users/:id	Soft delete a user	Admin
+
 💰 Financial Records Module
 Method	Endpoint	Purpose	Access
 GET	/api/records	Get records (Supports search/filter)	Admin, Analyst
@@ -273,18 +247,18 @@ GET	/api/dashboard/summary	Get aggregated totals, balances & trends	Admin, Analy
 
 📌 Installation & Setup
 1. Clone the Repository
-code
 Bash
 git clone https://github.com/yourusername/financial-backend.git
 cd financial-backend
-2. Install Dependencies
-code
+
+3. Install Dependencies
 Bash
 npm install
-3. Setup Environment Variables
+
+5. Setup Environment Variables
 Create a .env file in the root directory and add the required variables (see section below).
-4. Run the Server
-code
+
+7. Run the Server
 Bash
 # For development (auto-reloads on save)
 npm run dev
@@ -297,9 +271,7 @@ The server will start at http://localhost:5000.
 📌 Environment Variables
 Create a .env file in the project root:
 PORT=5000
-MONGO_URI
-JWT_SECRET
-JWT_EXPIRES_IN
+
 NODE_ENV=development
 
 # Database

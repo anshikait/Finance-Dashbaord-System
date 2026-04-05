@@ -1,4 +1,3 @@
-📌 Project Overview
 The Financial Management Backend is a highly scalable, secure, and feature-rich RESTful API designed to manage enterprise or personal financial records.
 It solves the problem of tracking income and expenses across different organizational tiers by providing a secure system with strict Role-Based Access Control (RBAC). It includes advanced features like complex database aggregations for dashboard analytics, soft-deletion for data integrity, and centralized error handling, making it a robust foundation for a modern web or mobile client.
 
@@ -58,57 +57,11 @@ Logging: Morgan & Custom Console Logger
 📌 System Architecture
 This project implements a Layered (Modular) Architecture to ensure a clear separation of concerns, making the codebase highly maintainable and testable.
 
-📂 Folder Structure
-
-/src
- ├── /config          # Database and 3rd party service configurations
- ├── /controllers     # Handles HTTP requests, extracts parameters, sends responses
- ├── /middlewares     # Intercepts requests (Auth, Roles, Validation, Error Handling)
- ├── /models          # Mongoose database schemas
- ├── /routes          # API endpoint definitions mapping to controllers
- ├── /services        # Core business logic and database interactions
- ├── /utils           # Reusable helper functions (CatchAsync, Custom Errors)
- └── /validations     # Joi validation schemas for incoming request bodies
+<img width="844" height="355" alt="image" src="https://github.com/user-attachments/assets/8964d11e-cf45-40c1-916b-eaddae3fd316" />
 
 This diagram shows how the application is separated into distinct layers, following the Domain-Driven / Layered Architecture approach.
 
-+---------------------------------------------------------+
-|                      CLIENT APPS                        |
-|               (React / Vue / Mobile App)                |
-+---------------------------+-----------------------------+
-                            | HTTP Request (JSON)
-                            v
-+---------------------------------------------------------+
-|                    EXPRESS.JS BACKEND                   |
-|                                                         |
-|  +----------------+   +----------------+   +---------+  |
-|  |     Routes     |-->|  Middlewares   |-->|  Utils  |  |
-|  | (API Endpoints)|   | (Auth/Roles)   |   | (Errors)|  |
-|  +----------------+   +----------------+   +---------+  |
-|          |                    |                         |
-|          v                    v                         |
-|  +---------------------------------------------------+  |
-|  |                   Controllers                     |  |
-|  |    (Extract parameters, Call Service, Send Res)   |  |
-|  +---------------------------------------------------+  |
-|                           |                             |
-|                           v                             |
-|  +---------------------------------------------------+  |
-|  |                    Services                       |  |
-|  |  (Core Business Logic, DB Queries, Aggregations)  |  |
-|  +---------------------------------------------------+  |
-|                           |                             |
-|                           v                             |
-|  +---------------------------------------------------+  |
-|  |               Models (Mongoose)                   |  |
-|  |    (Database Schemas, Pre-save Hooks, Indexing)   |  |
-|  +---------------------------------------------------+  |
-+---------------------------+-----------------------------+
-                            | Mongoose ORM
-                            v
-+---------------------------------------------------------+
-|                  DATABASE (MongoDB)                     |
-+---------------------------------------------------------+
+<img width="511" height="759" alt="image" src="https://github.com/user-attachments/assets/47100dd8-c5be-449b-87af-0ade10e8d80c" />
 
 Mermaid graph TD
     Client[Client Application] -->|HTTP JSON| Router[Express Router /routes]
@@ -131,37 +84,7 @@ Client Request ➔ Route ➔ Middleware (Auth/Role/Validation) ➔ Controller �
 
 This diagram tracks a single request (e.g., POST /api/records) from the moment the client sends it, through the security checks, to the database, and back to the client.
 
-Client Request: POST /api/records
-      │
-      ▼
-[ Express Router ] ──────> Maps URL to the specific route
-      │
-      ▼
-[ Auth Middleware ] ─────(No/Invalid Token?)──> ❌ 401 Unauthorized
-      │
-      ▼ (Valid Token)
-[ Role Middleware ] ─────(Is not Admin?)──────> ❌ 403 Forbidden
-      │
-      ▼ (Is Admin)
-[ Joi Validation ] ──────(Missing/Bad Data?)──> ❌ 400 Bad Request
-      │
-      ▼ (Valid Data)
-[ Controller ] ──────────> Extracts req.body & req.user.id
-      │
-      ▼
-[ Service ] ─────────────> Applies business logic / Prepares query
-      │
-      ▼
-[ Model (Mongoose) ] ────> Executes DB query (e.g., Record.create)
-      │
-      ▼
-[ MongoDB ] ─────────────> Saves data & returns Document to Service
-      │
-      ▼
-[ Controller ] ──────────> Formats output using `sendResponse` Util
-      │
-      ▼
-Client Response: 201 Created { success: true, data: { ... } }
+<img width="676" height="660" alt="image" src="https://github.com/user-attachments/assets/6d59c080-17e8-4e57-bd68-7161727d86eb" />
 
 Mermaid.js Sequence Diagram 
 sequenceDiagram
@@ -199,56 +122,96 @@ sequenceDiagram
 
 
 📌 Features Implemented
+
 🔐 Authentication: Secure user registration and login using JWT. Passwords are one-way hashed using bcryptjs before hitting the database.
+
 🛡️ Role-Based Access Control (RBAC): Middleware dynamically checks user roles to grant or deny access to specific endpoints.
+
 📄 Pagination: Listing APIs (Users, Records) implement page & limit queries to optimize database reads and payload sizes.
+
 🔍 Search & Filtering: API supports dynamic query parameters to filter financial records by date, category, type, and text-based searching.
+
 🗑️ Soft Delete: Records and users are never permanently deleted from the database. An isDeleted flag is toggled, preventing accidental data loss and preserving historical audit trails.
+
 ⏱️ Rate Limiting: Protects the API from brute-force and DDoS attacks by limiting IP request frequencies.
+
 ✅ Input Validation: Middleware intercepts bad data using Joi schemas before it reaches the controller, saving server resources.
+
 ⚠️ Centralized Error Handling: All operational errors and unhandled exceptions are routed through a single global error handler, ensuring consistent JSON error responses.
 
 
+
 📌 User Roles & Workflow
+
 The system enforces strict data governance through three defined roles:
+
 👑 Admin: Has full control. Can create, read, update, and delete financial records. Can also view all users and manage their roles/account statuses.
+
 📊 Analyst: Has read-only access to financial records and can access complex dashboard aggregations/summaries. Cannot create or modify data.
+
 👀 Viewer: The default role upon registration. Cannot access financial records until upgraded by an Admin.
+
+
+
 🚶 Real-Life Workflow
+
 A new user signs up and is assigned the Viewer role.
+
 An Admin logs in, views the user list, and upgrades the new user to Analyst.
+
 The Analyst fetches dashboard summaries to review monthly income vs. expenses.
+
 The Admin creates a new Expense record.
+
 If an Admin deletes the record, the system marks it as isDeleted: true instead of dropping the row, keeping financial history intact.
 
 
+
 📌 API Structure
+
 🔑 Auth Module
+
 Method	Endpoint	Purpose	Access
+
 POST	/api/auth/register	Register a new user	Public
+
 POST	/api/auth/login	Authenticate user & get JWT	Public
+
 👥 User Module
+
 Method	Endpoint	Purpose	Access
+
 GET	/api/users	Get paginated list of users	Admin
+
 PATCH	/api/users/:id/status	Activate/Deactivate user	Admin
+
 PATCH	/api/users/:id/role	Change user role	Admin
+
 DELETE	/api/users/:id	Soft delete a user	Admin
 
 💰 Financial Records Module
+
 Method	Endpoint	Purpose	Access
+
 GET	/api/records	Get records (Supports search/filter)	Admin, Analyst
+
 POST	/api/records	Create a new financial record	Admin
+
 PATCH	/api/records/:id	Update a specific record	Admin
+
 DELETE	/api/records/:id	Soft delete a record	Admin
+
 📈 Dashboard Module
+
 Method	Endpoint	Purpose	Access
+
 GET	/api/dashboard/summary	Get aggregated totals, balances & trends	Admin, Analyst
 
 
 📌 Installation & Setup
 1. Clone the Repository
 Bash
-git clone https://github.com/yourusername/financial-backend.git
+git clone https://github.com/anshikait/Finance-Dashbaord-System
 cd financial-backend
 
 3. Install Dependencies
